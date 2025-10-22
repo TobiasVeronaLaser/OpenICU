@@ -12,6 +12,7 @@ def process_table(table: TableConfig, path: Path, output_path: Path, src: str) -
         join_table.name: join_table.path
         for join_table in table.join
     }
+    print(table_paths)
     table_paths[table.name] = table.path
     table_field_dtypes = table.table_field_dtypes
 
