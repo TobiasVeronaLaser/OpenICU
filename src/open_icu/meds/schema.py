@@ -13,3 +13,4 @@ class MEDSData(PyArrowSchema):
 class OpenICUMEDSData(MEDSData):
     hadm_id: Optional(pa.int64())  # type: ignore[valid-type]
     stay_id: Optional(pa.int64())  # type: ignore[valid-type]
+    row_id: Optional(pa.int64())  # type: ignore[valid-type]
