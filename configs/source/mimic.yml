@@ -4,11 +4,19 @@ tables:
   - name: medications
     path: icu/inputevents.csv
     fields:
+      - field: source_db_code
+        type: string
+        constant: mimic 
+      - field: source_table_code
+        type: string
+        constant: icu/inputevents
       - field: subject_id
         type: int64
       - field: hadm_id
         type: int64
       - field: stay_id
+        type: int64
+      - field: row_id
         type: int64
       - field: endtime
         type: datetime
@@ -16,7 +24,15 @@ tables:
         type: float32
       - field: amountuom
         type: string
+      - field: rate_start_code
+        type: string
+        constant: RATE_START
       - field: starttime
+        type: datetime
+      - field: rate_end_code
+        type: string
+        constant: RATE_END
+      - field: endtime
         type: datetime
       - field: rateuom
         type: string
@@ -24,6 +40,13 @@ tables:
         type: float32
       - field: itemid
         type: int64
+      - field: caregiver_store_code
+        type: string
+        constant: CG_ST # caregiver_storetime
+      - field: caregiver_id
+        type: int64
+      - field: storetime
+        type: datetime
     join:
       - name: d_items
         path: icu/d_items.csv
@@ -46,20 +69,50 @@ tables:
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
-      - name: rate
+            row_id: row_id
+      - name: rate_start
         fields:
           subject_id: subject_id
           time: starttime
           code:
             - label
             - rateuom
+            - rate_end_code
           numeric_value: rate
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
+            row_id: row_id
         filters:
           dropna:
             - rate
+      - name: rate_end
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - label
+            - rateuom
+            - rate_start_code
+          numeric_value: rate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - rate
+      - name: caregiver_store
+        fields: 
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - caregiver_store_code
+          numeric_value: caregiver_id
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
 
   - name: chartevents
     path: icu/chartevents.csv
@@ -69,6 +122,8 @@ tables:
       - field: hadm_id
         type: int64
       - field: stay_id
+        type: int64
+      - field: row_id
         type: int64
       - field: charttime
         type: datetime
@@ -103,6 +158,7 @@ tables:
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
+            row_id: row_id
 
 
   - name: icustays
@@ -113,6 +169,8 @@ tables:
       - field: hadm_id
         type: int64
       - field: stay_id
+        type: int64
+      - field: row_id
         type: int64
       - field: intime
         type: datetime
@@ -147,6 +205,7 @@ tables:
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
+            row_id: row_id
       - name: icu_discharge
         fields:
           subject_id: subject_id
@@ -157,6 +216,7 @@ tables:
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
+            row_id: row_id
       - name: icu_length_of_stay
         fields:
           subject_id: subject_id
@@ -168,3 +228,4 @@ tables:
           extension:
             hadm_id: hadm_id
             stay_id: stay_id
+            row_id: row_id
