@@ -76,7 +76,7 @@ def process_table(table: TableConfig, path: Path, output_path: Path, src: str) -
             codes_df = df[event.fields.code].drop_duplicates()
             codes_df["code"] = codes_df[event.fields.code[0]].str.cat(codes_df[event.fields.code[1:]], sep="//")
             codes.append(codes_df[["code"]])
-
+            print(codes)
             df = df.merge(
                 codes_df,
                 on=event.fields.code,
