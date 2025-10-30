@@ -147,6 +147,7 @@ class TableConfig(BaseModel):
     join: list[JoinConfig] = Field(default_factory=list)
     # added base extensions so if no extensions are specified for an event, these are used
     default_event: EventConfig | None = None
+    default_event: EventConfig = Field()
     base_extension: dict[str, str] = Field(default_factory=dict)
     events: list[EventConfig] = Field(default_factory=list)
 
