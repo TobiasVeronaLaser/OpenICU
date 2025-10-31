@@ -1,0 +1,210 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: ingredientevents
+    path: icu/ingredientevents.csv
+    fields:
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+      - field: row_id
+        type: int64
+      - field: caregiver_id
+        type: int64
+      - field: caregiver_code
+        type: string
+        constant: CAREGIVER
+      - field: starttime
+        type: datetime
+      - field: rate_start_code
+        type: string
+        constant: RATE_START
+      - field: endtime
+        type: datetime
+      - field: rate_end_code
+        type: string
+        constant: RATE_END
+      - field: storetime
+        type: datetime
+      - field: storetime_code
+        type: datetime
+        constant: STORETIME
+      - field: itemid
+        type: int64
+      - field: amount
+        type: float32
+      - field: amount_code
+        type: string
+        constant: DOSAGE
+      - field: amountuom
+        type: string
+      - field: rate
+        type: float32
+      - field: rateuom
+        type: string
+      - field: orderid
+        type: int64
+      - field: order_code
+        type: string
+        constant: ORDER
+      - field: linkorderid
+        type: int64
+      - field: linkorder_code
+        type: string
+        constant: LINKORDER
+      - field: statusdescription
+        type: string
+      - field: statusdescription_code
+        type: string
+        constant: STATUSDESCRIPTION
+      - field: originalamount
+        type: int64
+      - field: originalamount_code
+        type: string
+        constant: ORIGINAL_DOSAGE
+      - field: originalrate
+        type: float32 
+      - field: originalrate_code
+        type: string
+        constant: ORIGINALRATE
+    join:
+      - name: d_items
+        path: icu/d_items.csv
+        fields:
+          - field: itemid
+            type: int64
+          - field: label
+            type: string
+        both_on:
+          - itemid
+    events:
+      - name: caregiver
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code:
+            - caregiver_code 
+          numeric_value: caregiver_id
+          extension: 
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: storetime
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code:
+            - storetime_code
+            - label
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: rate_start
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - rate_start_code
+            - label
+            - rateuom
+          numeric_value: rate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+          filters:
+            dropna:
+              -rate
+      - name: rate_end
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - rate_end_code
+            - label
+            - rateuom
+          numeric_value: rate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - rate
+      - name: storetime
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code:
+            - storetime_code
+            - label
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: dosage
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - amount_code
+            - label
+            - amountuom
+          numeric_value: amount
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: order
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - order_code
+          numeric_value: orderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: linkorder
+        fields: 
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - linkorder_code
+          numeric_value: linkorderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id  
+      - name: statusdescription
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - statusdescription_code
+            - statusdescription
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: originalrate
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - originalrate_code
+            - label
+            - rateuom
+          numeric_value: originalrate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - originalrate

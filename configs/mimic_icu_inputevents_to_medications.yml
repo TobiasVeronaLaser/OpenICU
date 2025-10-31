@@ -1,0 +1,344 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: medications
+    path: icu/inputevents.csv
+    fields:
+      # deidentified patient
+      - field: subject_id
+        type: int64
+      # hospital stay
+      - field: hadm_id
+        type: int64
+      # icu stay
+      - field: stay_id
+        type: int64
+      # extended identification, for grouping information and possible 
+      #   retransformation.
+      - field: row_id
+        type: int64
+      #
+      - field: caregiver_id
+        type: int64
+      - field: caregiver_code
+        type: string
+        constant: CAREGIVER
+      # start and enttime from input event
+      - field: starttime
+        type: datetime
+      - field: endtime
+        type: datetime
+      # time of when information was enteredby a clinical staff member
+      - field: storetime
+        type: datetime
+      - field: storetime_code
+        type: string
+        constant: STORETIME
+      # indentification for measurement type
+      - field: itemid
+        type: int64
+      # the amount and unit of a drug administered between starttime and
+      #   entime
+      - field: amount
+        type: float32
+      - field: amountuom
+        type: string
+      - field: amount_code
+        type: string
+        constant: DOSAGE
+      # the rate and unit at which the substance is administed between starttime
+      #   and endtime
+      - field: rate
+        type: float32
+      - field: rateuom
+        type: string
+      - field: rate_start_code
+        type: string
+        constant: RATE_START
+      - field: rate_end_code
+        type: string
+        constant: RATE_END
+      # substances which are listed seperately but are one solution are grouped
+      #   by "orderid"
+      - field: orderid
+        type: int64
+      - field: order_code
+        type: string
+        constant: ORDER
+      # if a change of solution, rate or similar happens, but same treatment 
+      #   the orderid changes but the linkorderid stays the same
+      - field: linkorderid
+        type: int64
+      - field: linkorder_code
+        type: string
+        constant: LINKORDER
+      # higher level of information
+      - field: ordercategoryname
+        type: string
+      - field: secondaryordercategoryname
+        type: string
+      - field: ordercomponenttypedescription
+        type: string
+      - field: ordercategorydescription
+        type: string
+      # patient weight
+      - field: patientweight
+        type: int64[pyarrow]
+      - field: weight_code
+        type: string
+        constant: WEIGHT 
+      - field: weightuom
+        type: string
+        constant: kg
+      # total amount 
+      - field: totalamount
+        type: float32[pyarrow]
+      - field: totalamount_code
+        type: string
+        constant: TOTALAMOUNT
+      - field: totalamountuom
+        type: string
+      # if the order was from an open bag (drainable pouch?)
+      - field: isopenbag
+        type: int64
+      - field: isopenbag_code
+        type: string
+        constant: ISOPENBAG
+      # when transfered it indicates if the order was continued
+      - field: continueinnextdept
+        type: int64
+      - field: continueinnextdept_code
+        type: string
+        constant: CONTINUE_IN_NEXT_DEPT
+      #
+      - field: statusdescription
+        type: string
+      - field: statusdescription_code
+        type: string
+        constant: STATUSDESCRIPTION
+      # the amount starting amount contained in the bag at starttime
+      - field: originalamount
+        type: float32
+      - field: originalamount_code
+        type: string
+        constant: ORIGINAL_DOSAGE
+      # starting rate and rate might be diffrent, if changes happend
+      - field: originalrate
+        type: float32
+      - field: originalrate_code
+        type: string
+        constant: ORIGINALRATE
+    join:
+      - name: d_items
+        path: icu/d_items.csv
+        fields:
+          # primary keay
+          - field: itemid
+            type: int64
+          # concept description
+          - field: label
+            type: string
+        both_on:
+          - itemid
+    events:
+      # assuming caregiver enteres data in the system at the storetime 
+      #   (!!! check correctness )
+      - name: caregiver
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - caregiver_code
+          numeric_value: caregiver_id
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      # time when the event was entered into a system
+      - name: storetime
+        fields: 
+          subject_id: subject_id
+          time: storetime
+          code:
+            - storetime_code
+            - label
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      # 
+      - name: rate_start
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - rate_start_code
+            - label
+            - rateuom
+          numeric_value: rate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - rate
+      #
+      - name: rate_end
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - rate_end_code
+            - label
+            - rateuom
+          numeric_value: rate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - rate
+      #
+      - name: dosage
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - amount_code
+            - label
+            - amountuom
+          numeric_value: amount
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      #
+      - name: weight
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - weight_code
+            - weightuom
+          numeric_value: patientweight
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - patientweight
+      #
+      - name: totalamount
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - totalamount_code
+            - totalamountuom 
+          numeric_value: totalamount
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - totalamount
+      #
+      - name: order
+        fields: 
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - order_code
+            - ordercategoryname # (!!!) 
+            - secondaryordercategoryname  # (!!!)
+            # - ordercomponenttypedescription # (!!!)
+            # - ordercategorydescription  # (!!!)
+          numeric_value: orderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      #
+      - name: linkorder
+        fields: 
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - linkorder_code
+          numeric_value: linkorderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id  
+      #
+      - name: isopenbag
+        fields: 
+          subject_id: subject_id
+          time: starttime
+          code:
+            - isopenbag_code
+          numeric_value: isopenbag
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      #
+      - name: continueinnextdept
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - continueinnextdept_code
+            - continueinnextdept
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      #
+      - name: statusdescription
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - statusdescription_code
+            - statusdescription
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      #
+      - name: originalamount
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code: 
+            - originalamount_code
+            - label
+            - amountuom
+          numeric_value: originalamount
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      # 
+      - name: originalrate
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - originalrate_code
+            - label
+            - rateuom
+          numeric_value: originalrate
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - originalrate
+

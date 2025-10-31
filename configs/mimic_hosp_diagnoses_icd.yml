@@ -1,0 +1,68 @@
+# The icd_code is a string in the diagnoses_ics 
+# regex um e/V trennen
+name: mimic
+version: "3.1"
+tables:
+  - name: diagnoses_icd
+    path: hosp/diagnoses_icd.csv
+    fields:
+      - field: diagnoses_code
+        type: string
+        constant: DIAGNOSES
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: seq_num
+        type: int64
+      - field: icd_code
+        type: string
+      - field: icd_version
+        type: int64
+    join:
+      # - name: d_items
+      #   path: icu/d_items.csv
+      #   fields:
+      #     - field: icd_code
+      #       type: string
+      #     - field: icd_version
+      #       type: int64
+      #     - field: long_title
+      #       type: string
+      #   both_on:
+      #     - icd_code
+      #     - icd_version
+      - name: admissions
+        path: hosp/admissions.csv
+        fields:
+          - field: hadm_id
+            type: int64
+          - field: dischtime
+            type: datetime
+        both_on:
+          - hadm_id 
+    events: 
+      - name: diagnoses
+        fields:
+          subject_id: subject_id
+          time: dischtime
+          code: 
+            - diagnoses_code
+            # the d_icd_diagnoses table, has only int and null values.
+            #   Assumption: values should be strings and via passing to int, 
+            #   information got lost
+            - icd_code
+            - icd_version  
+          numeric_value: seq_num
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+
+
+    

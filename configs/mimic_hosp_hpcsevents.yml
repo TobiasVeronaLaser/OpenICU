@@ -1,0 +1,40 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: hcpcsevents
+    path: hosp/hcpcsevents.csv
+    fields:
+      - field: hcspsevents_code
+        type: string
+        constant: HCPCS
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64[pyarrow]
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: chartdate
+        type: datetime
+      - field: hcpcs_cd
+        type: string
+      - field: seq_num
+        type: int64
+      - field: short_description
+        type: string[pyarrow]
+    events: 
+      - name: hpcsevent
+        fields:
+          subject_id: subject_id
+          time: chartdate
+          code: 
+            - hcspsevents_code
+            - hcpcs_cd
+          numeric_value: seq_num
+          text_value: short_description
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id

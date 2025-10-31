@@ -1,0 +1,267 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: procedureevents
+    path: icu/procedureevents.csv
+    fields:
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+      - field: row_id
+        type: int64
+      - field: caregiver_id
+        type: int64[pyarrow]
+      - field: caregiver_code
+        type: string
+        constant: CAREGIVER
+      - field: starttime
+        type: datetime
+      - field: event_start_code
+        type: string
+        constant: EVENT_START
+      - field: endtime
+        type: datetime
+      - field: event_end_code
+        type: string
+        constant: EVENT_END
+      - field: storetime
+        type: datetime
+      - field: storetime_code
+        type: string
+        constant: STORETIME
+      - field: itemid
+        type: int64
+      - field: value
+        type: int64[pyarrow]
+      - field: valueuom
+        type: string
+      - field: location
+        type: string
+      - field: location_code
+        type: string
+        constant: LOCATION
+      - field: locationcategory
+        type: string
+      - field: orderid
+        type: int64
+      - field: order_code
+        type: string
+        constant: ORDER
+      - field: linkorderid
+        type: int64
+      - field: linkorder_code
+        type: string
+        constant: LINKORDER
+      - field: ordercategoryname
+        type: string
+      - field: patientweight
+        type: float32[pyarrow]
+      - field: weight_code
+        type: string
+        constant: WEIGHT 
+      - field: weightuom
+        type: string
+        constant: kg
+        constant: PATIENTWEIGHT
+      - field: isopenbag
+        type: int64
+      - field: isopenbag_code
+        type: string
+        constant: ISOPENBAG
+      - field: continueinnextdept
+        type: int64
+      - field: continueinnextdept_code
+        type: string
+        constant: CONTINUEINNEXTDEPT
+      - field: statusdescription
+        type: string
+      - field: statusdescription_code
+        type: string
+        constant: STATUSDESCRIPTION
+      - field: ORIGINALAMOUNT
+        type: int64[pyarrow]
+      - field: originalamount_code
+        type: string
+        constant: ORIGINAL_AMOUNT
+      - field: ORIGINALRATE
+        type: int64
+      - field: originalrate_code
+        type: string
+        constant: ORIGINALRATE
+    join:
+      - name: d_items
+        path: icu/d_items.csv
+        fields:
+          - field: itemid
+            type: int64
+          - field: label
+            type: string
+        both_on:
+          - itemid
+    events:
+      - name: caregiver
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - caregiver_code
+          numeric_value: caregiver_id
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+        filters:
+          dropna:
+            - caregiver_id
+      - name: event_start
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - event_start_code
+            - label
+            - valueuom
+          numeric_value: value
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: event_end
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code:
+            - event_end_code
+            - label
+            - valueuom
+          numeric_value: value
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: storetime
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - storetime_code
+            - label
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: location
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - location_code
+            - locationcategory
+          text_value: location
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+        filters:
+          dropna:
+            - location
+      - name: order
+        fields: 
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - order_code
+            - ordercategoryname
+          numeric_value: orderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: linkorder
+        fields: 
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - linkorder_code
+          numeric_value: linkorderid
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: weight
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code: 
+            - weight_code
+            - weightuom
+          numeric_value: patientweight
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: isopenbag
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - isopenbag_code
+          numeric_value: isopenbag
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: continueinnextdept
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - continueinnextdept_code
+            - continueinnextdept
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: statusdescription
+        fields:
+          subject_id: subject_id
+          time: endtime
+          code: 
+            - statusdescription_code
+            - statusdescription
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: originalamount
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code: 
+            - originalamount_code
+            - label
+            - valueuom
+          numeric_value: ORIGINALAMOUNT
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: originalrate
+        fields:
+          subject_id: subject_id
+          time: starttime
+          code:
+            - originalrate_code
+            - label
+          numeric_value: ORIGINALRATE
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+        filters:
+          dropna:
+            - ORIGINALRATE
+          

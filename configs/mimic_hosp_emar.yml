@@ -1,0 +1,65 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: emar
+    path: hosp/emar.csv
+    fields:
+      - field: emar_code
+        type: string
+        constant: EMAR
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64[pyarrow]
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: emar_id  # emar = subject_id + "-" + emar_seq
+        type: string
+      - field: emar_seq
+        type: int64
+      - field: poe_id
+        type: string
+      - field: pharmacy_id
+        type: int64[pyarrow]
+      - field: enter_provider_id
+        type: string[pyarrow]
+      - field: charttime
+        type: datetime
+      - field: medication
+        type: string[pyarrow]
+      - field: event_txt
+        type: string[pyarrow]
+      - field: scheduletime
+        type: datetime
+      - field: scheduletime_code
+        type: string
+        constant: SCHEDULETIME
+      - field: storetime
+        type: datetime
+    events:
+      - name: diagnoses
+        fields:
+          subject_id: subject_id
+          time: charttime
+          code: 
+            - emar_code
+            - medication
+          text_value: event_txt
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: scheduletime
+        fields:
+          subject_id: subject_id
+          time: scheduletime
+          code:
+            - emar_code
+            - scheduletime_code
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id

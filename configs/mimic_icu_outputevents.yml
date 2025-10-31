@@ -1,0 +1,81 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: outputevents
+    path: icu/outputevents.csv
+    fields:
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+      - field: row_id
+        type: int64
+      - field: caregiver_id
+        type: int64
+      - field: caregiver_code
+        type: string
+        constant: CAREGIVER
+      - field: charttime
+        type: datetime
+      - field: storetime
+        type: datetime
+      - field: storetime_code
+        type: string
+        constant: STORETIME
+      - field: itemid
+        type: int64
+      - field: dosage_code
+        type: string
+        constant: DOSAGE
+      - field: value
+        type: int64
+      - field: valueuom
+        type: string
+    join:
+      - name: d_items
+        path: icu/d_items.csv
+        fields:
+          - field: itemid
+            type: int64
+          - field: label
+            type: string
+        both_on:
+          - itemid
+    events:
+      - name: caregiver
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - caregiver_code
+          numeric_value: caregiver_id
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: storetime
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code:
+            - storetime_code
+            - label
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: dosage
+        fields:
+          subject_id: subject_id
+          time: charttime
+          code: 
+            - dosage_code
+            - label
+            - valueuom
+          numeric_value: value
+          extension: 
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id

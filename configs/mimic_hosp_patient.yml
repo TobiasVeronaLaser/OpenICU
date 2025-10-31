@@ -1,0 +1,92 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: patients
+    path: hosp/patients.csv
+    fields:
+      - field: patient_code
+        type: string
+        constant: PATIENT
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+        constant: -1
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: gender_code
+        type: string
+        constant: SEX
+      - field: gender
+        type: string
+      - field: age_code
+        type: string
+        constant: AGE
+      - field: anchor_age
+        type: int64
+      - field: anchor_year
+        type: int64
+      - field: anchor_year_group
+        type: string
+      - field: dod
+        type: datetime
+      - field: dod_code
+        type: string
+        constant: DOD
+      - field: birthdate
+        year:
+          field: anchor_year
+          type: int64[pyarrow]
+        month:
+          field: month
+          type: int64[pyarrow]
+          constant: 1
+        day:
+          field: day
+          type: int64[pyarrow]
+          constant: 1
+        time:
+          field: time
+          type: string
+          constant: "00:00:00"
+        offset:
+          field: anchor_age # age is considered as seconds by the openICU code
+          type: int64
+      - field: dob_code
+        type: string
+        constant: DOB
+    events: 
+      - name: dob
+        fields:
+          subject_id: subject_id
+          time: birthdate
+          code:
+            - dob_code
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: gender
+        fields:
+          subject_id: subject_id
+          time: birthdate
+          code: 
+            - gender_code
+            - gender
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: dod
+        fields:
+          subject_id: subject_id
+          time: dod
+          code:
+            - dod_code
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id

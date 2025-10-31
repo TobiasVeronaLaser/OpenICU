@@ -1,0 +1,80 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: icustays
+    path: icu/icustays.csv
+    fields:
+      # subject_id
+      - field: subject_id
+        type: int64
+      # hadm_id
+      - field: hadm_id
+        type: int64
+      # stay_id
+      - field: stay_id
+        type: int64
+      # row_id
+      - field: row_id
+        type: int64
+      # first_careunit
+      - field: first_careunit
+        type: string
+      # last_careunit
+      - field: last_careunit
+        type: string
+      # intime
+      - field: intime
+        type: datetime
+      - field: in_code
+        type: string
+        constant: ICU_ADMISSION
+      # outtime
+      - field: outtime
+        type: datetime
+      - field: out_code
+        type: string
+        constant: ICU_DISCHARGE
+      # los
+      - field: los
+        type: float32
+      - field: los_code
+        type: string
+        constant: ICU_LOS
+      - field: los_unit
+        type: string
+        constant: d
+    events:
+      - name: icu_admission
+        fields:
+          subject_id: subject_id
+          time: intime
+          code:
+            - in_code
+            - first_careunit
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: icu_discharge
+        fields:
+          subject_id: subject_id
+          time: outtime
+          code:
+            - out_code
+            - last_careunit
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: icu_length_of_stay
+        fields:
+          subject_id: subject_id
+          time: outtime
+          code:
+            - los_code
+            - los_unit
+          numeric_value: los
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id

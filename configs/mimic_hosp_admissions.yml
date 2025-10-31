@@ -1,0 +1,184 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: admissions
+    path: hosp/admissions.csv
+    fields:
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: admittime
+        type: datetime
+      - field: admission_code
+        type: string
+        constant: ADMISSION_TIME
+      - field: dischtime
+        type: datetime
+      - field: discharge_code
+        type: string
+        constant: DISCHARGE_TIME
+      - field: deathtime
+        type: datetime
+      - field: death_code
+        type: string
+        constant: DEATH
+      - field: admission_type
+        type: string
+      - field: admit_provider_id
+        type: string
+      - field: admission_location
+        type: string
+      - field: discharge_location
+        type: string
+      - field: insurance
+        type: string
+      - field: insurance_code
+        type: string
+        constant: INSURANCE
+      - field: language
+        type: string
+      - field: language_code
+        type: string
+        constant: LANGUAGE
+      - field: marital_status
+        type: string
+      - field: marital_status_code
+        type: string
+        constant: MARITAL_STATUS
+      - field: race
+        type: string
+      - field: race_code
+        type: string
+        constant: RACE
+      - field: edregtime
+        type: string
+      - field: edreg_code
+        type: string
+        constant: EDREGTIME
+      - field: edouttime
+        type: string
+      - field: edout_code
+        type: string
+        constant: EDOUTTIME
+      - field: hospital_expire_flag
+        type: int64
+      - field: hospital_expire_flag_code
+        type: string
+        constant: HOSPITAL_EXPIRE_FLAG
+    events: 
+      - name: admission
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - admission_code
+            - admission_location
+            - admission_type
+            - admit_provider_id
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: discharge
+        fields:
+          subject_id: subject_id
+          time: dischtime
+          code:
+            - discharge_code
+            - discharge_location
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: deathtime
+        fields:
+          subject_id: subject_id
+          time: deathtime
+          code:
+            - death_code
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: insurance
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - insurance_code
+            - insurance
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: language
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code:
+            - language_code
+            - language
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: marital_status
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code:
+            - marital_status_code
+            - marital_status
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: race
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - race_code
+            - race
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: emergency_department_registration
+        fields:
+          subject_id: subject_id
+          time: edregtime
+          code:
+            - edreg_code
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: emergency_department_discharge
+        fields:
+          subject_id: subject_id
+          time: edouttime
+          code:
+            - edout_code
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      - name: hospital_expire_flag
+        fields:
+          subject_id: subject_id
+          time: dischtime
+          code: 
+            - hospital_expire_flag_code
+          numeric_value: hospital_expire_flag
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+          

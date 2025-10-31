@@ -1,0 +1,107 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: chartevents
+    path: icu/chartevents.csv
+    fields:
+      # deidentification
+      - field: subject_id
+        type: int64
+      # hospital stay id
+      - field: hadm_id
+        type: int64
+      # icu stay id
+      - field: stay_id
+        type: int64
+      # row id
+      - field: row_id
+        type: int64
+      # caregiver
+      - field: caregiver_id
+        type: int64[pyarrow]
+      - field: caregiver_code
+        type: string
+        constant: CAREGIVER
+      # charttime
+      - field: charttime
+        type: datetime
+      - field: chartevent_code
+        type: string
+        constant: CHARTEVENT
+      # storetime
+      - field: storetime
+        type: datetime
+      # itemid
+      - field: itemid
+        type: int64
+      # value
+      - field: value
+        type: string
+      # valuenum
+      - field: valuenum
+        type: float32
+      # valueuom
+      - field: valueuom
+        type: string
+      # warning
+      - field: warning
+        type: int64[pyarrow]
+      - field: warning_code
+        type: string
+        constant: WARNING
+    join:
+      - name: d_items
+        path: icu/d_items.csv
+        fields:
+        # primary key
+          - field: itemid
+            type: int64
+          - field: label
+            type: string
+        both_on:
+          - itemid
+    events:
+      # chartevent
+      - name: chartevent
+        fields:
+          subject_id: subject_id
+          time: charttime
+          code:
+            - chartevent_code
+            - label
+            - valueuom
+          numeric_value: valuenum
+          text_value: value
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+      # caregiver: using store time, because the caregiver enters information
+      #   at the storetime, caregiver_code, caregiver_id
+      - name: caregiver
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code: 
+            - caregiver_code
+          numeric_value: caregiver_id
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+          dropna: 
+            - caregiver_id
+      # warning 
+      - name: warning
+        fields:
+          subject_id: subject_id
+          time: storetime
+          code:
+            - warning_code
+          numeric_value: warning
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+          dropna: 
+            - warning

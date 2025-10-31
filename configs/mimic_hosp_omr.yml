@@ -1,0 +1,42 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: omr # online medical record
+    path: hosp/omr.csv
+    fields:
+      - field: omr_code
+        type: string
+        constant: OMR
+      - field: subject_id
+        type: int64
+      - field: hadm_id
+        type: int64
+        constant: -1
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: chartdate
+        type: datetime
+      - field: seq_num
+        type: int64
+      - field: result_name
+        type: string
+      - field: result_value
+        type: string
+    events:
+      - name: value
+        fields:
+          subject_id: subject_id
+          time: chartdate
+          code: 
+            - omr_code
+            - result_name
+          text_value: result_value
+          numeric_value: seq_num
+          extension:
+            hadm_id: hadm_id
+            stay_id: stay_id
+            row_id: row_id
+

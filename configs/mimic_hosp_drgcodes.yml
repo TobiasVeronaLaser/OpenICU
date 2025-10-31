@@ -1,0 +1,92 @@
+name: mimic
+version: "3.1"
+tables:
+  - name: drgcodes
+    path: hosp/drgcodes.csv
+    fields:
+      - field: subject_id
+        type: int64[pyarrow]
+      - field: hadm_id
+        type: int64
+      - field: stay_id
+        type: int64
+        constant: -1
+      - field: row_id
+        type: int64
+      - field: drg_type
+        type: string[pyarrow]
+      - field: drg_code
+        type: string[pyarrow]
+      - field: description
+        type: string[pyarrow]
+      - field: description_code
+        type: string
+        constant: description
+      - field: drg_severity
+        type: int64[pyarrow]
+      - field: drg_severity_code
+        type: string
+        constant: SEVERITY
+      - field: drg_mortality
+        type: int64[pyarrow]
+      - field: drg_mortality_code
+        type: string
+        constant: mortality
+    join:
+      - name: admissions
+        path: hosp/admissions.csv
+        fields:
+          - field: hadm_id
+            type: int64
+          - field: admittime
+            type: datetime
+        both_on:
+          - hadm_id
+    events: 
+      - name: description
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - drg_type
+            - drg_code
+            - description_code
+          text_value: description
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+      - name: severity
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - drg_type
+            - drg_code
+            - drg_severity_code
+          numeric_value: drg_severity
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+          dropna: 
+            - drg_severity
+      - name: mortality
+        fields:
+          subject_id: subject_id
+          time: admittime
+          code: 
+            - drg_type
+            - drg_code
+            - drg_mortality_code
+          numeric_value: drg_mortality
+          extension:
+              hadm_id: hadm_id
+              stay_id: stay_id
+              row_id: row_id
+          dropna: 
+            - drg_mortality
+
+
+
+    
