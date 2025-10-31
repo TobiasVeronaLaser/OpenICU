@@ -146,6 +146,7 @@ class TableConfig(BaseModel):
     path: str
     fields: list[FieldConfig | CalcDatetimeFieldConfig | OffsetDatetimeFieldConfig] = Field(default_factory=list)
     join: list[JoinConfig] = Field(default_factory=list)
+    default_event: EventConfig | None = None
     events: list[EventConfig] = Field(default_factory=list)
 
     @computed_field  # type: ignore[prop-decorator]

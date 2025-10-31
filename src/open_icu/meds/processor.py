@@ -94,6 +94,20 @@ def process_table(table: TableConfig, path: Path, output_path: Path, src: str) -
     all_codes = []
 
     for event in table.events:
+        # Add missing columns via default event
+        # Add missing fields from default_event
+        
+        # if table.default_event is not None:
+        #     if table.default_event.fields.subject_id is not None and event.fields.subject_id is None:
+        #         event.fields.subject_id = table.default_event.fields.subject_id
+        #     if table.default_event.fields.time is not None and event.fields.time is None:
+        #         event.fields.time = table.default_event.fields.time
+        #     if table.default_event.fields.code is not None:
+        #         event.fields.code = table.default_event.code + event.fields.code
+        #     if table.default_event.fields.extension is not None:
+        #         for key, value in table.default_event.fields.extension.items():
+        #             if key not in event.fields.extension:
+        #                 event.fields.extension[key] = value
         # Select event fields
         event_lf = lf.select(event.field_names)
 
