@@ -18,7 +18,7 @@ class Split(CallbackProtocol):
         for column in self.columns:
             split_expression = pl.col(column).str.split(self.regex)
             lf = lf.with_columns(split_expression.alias(f"{column}_split"))
-            for suffix in self.suffixes:
+            for i, suffix in enumerate(self.suffixes):
                 lf = lf.with_columns(
                     pl.col(f"{column}_split").list.get(i).alias(f"{column}_{suffix}")
                 )
