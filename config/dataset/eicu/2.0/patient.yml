@@ -1,79 +1,40 @@
 name: patient
-path: patient.csv
+path: patient.csv.gz
+version: "2.0"
+dataset: eicu
 
-fields:
-  # general codes
-  - name: src_table_code
-    type: string
-    constant: patient
-  # codes
-  - name: admissionheight_code
-    type: string
-    constant: HEIGHT
-  - name: admissionweight_code
-    type: string
-    constant: ADMISSION_WEIGHT
-  - name: age_code
-    type: string
-    constant: AGE
-  - name: dischargeweight_code
-    type: string
-    constant: DISCHARGE_WEIGHT
-  - name: ethnicity_code
-    type: string
-    constant: ETHNICITY
-  - name: gender_code
-    type: string
-    constant: GENDER
-  - name: in_code
-    type: string
-    constant: ICU_ADMISSION
-  - name: out_code
-    type: string
-    constant: icu_discharge
-  # subject_id and extensions
-  - name: hadm_id
-    type: int64
-    constant: -1
+columns:
+  # subject_id and extension
   - name: patienthealthsystemstayid
     type: int64
   - name: patientunitstayid
     type: int64
-  - name: src_db_id
-    type: string
-    constant: eicu
   # db fields - times
-  - name: admission_day
-    type: int64
-    constant: 1
-  - name: admission_month
-    type: int64
-    constant: 1
   - name: hospitaladmitoffset
     type: int64
   - name: hospitaladmittime24
     type: string
+  - name: hospitaldischargeoffset
+    type: int64
   - name: hospitaldischargeyear
     type: int64
+  - name: unitadmittime24
+    type: string
   - name: unitdischargeoffset
     type: int64
+  - name: unitdischargetime24
+    type: string
   # db fields - values
   - name: admissionheight
-    type: float64 # decimal(10,2)
-  - name: admissionheight_unit
-    type: string
-    constant: cm
+    type: float64 # decimal(x,y) # decimal(10,2)
   - name: admissionweight
-    type: float32
-  - name: age_unit
+    type: float64 # decimal(x,y)
+  - name: age
     type: string
-    constant: y
   - name: apacheadmissiondx
     type: string
-  # - name: categoric_age
-  #   type: string
   - name: dischargeweight
-    type: float32
+    type: float64 # decimal(x,y)
   - name: ethnicity
     type: string
   - name: gender
@@ -82,11 +43,15 @@ fields:
     type: string
   - name: hospitaldischargelocation
     type: string
+  - name: hospitaldischargestatus
+    type: string
   - name: hospitalid
     type: int64
-  # - name: numeric_age
-  #   type: int64
   - name: unitadmitsource
+    type: string
+  - name: unitdischargelocation
+    type: string
+  - name: unitdischargestatus
     type: string
   - name: unitstaytype
     type: string
@@ -98,59 +63,60 @@ fields:
     type: string
   - name: wardid
     type: int64
-  - name: weight_unit
-    type: string
-    constant: kg
 
 post_callbacks:
-  - callback: to_datetime
-    params:
-      year: hospitaldischargeyear
-      month: admission_month
-      day: admission_day
-      time: hospitaladmittime24
-      offset: hospitaladmitoffset
-      output: admission_timestamp
-  - callback: add_offset
-    params:
-      datetime: admission_timestamp
-      offset: unitdischargeoffset
-      output: discharge_timestamp
+  - to_datetime(hospitaldischargeyear, 1, 1, hospitaladmittime24, hospitaladmitoffset, admission_timestamp)
+  - add_offset(admission_timestamp, unitdischargeoffset, discharge_timestamp)
 
 event_defaults:
-  subject_id: patienthealthsystemstayid
-  code_prefix:
-    - src_table_code
+  subject_id: col(patienthealthsystemstayid)
   extension:
-    hadm_id: hadm_id
-    stay_id: patientunitstayid
-    src_db_id: src_db_id
+    hadm_id: const(-1)
+    stay_id: col(patientunitstayid)
 
 events:
-  - name: icu_admission
-    fields:
-      time: admission_timestamp
-      code:
-        - in_code
-        - unittype
-  - name: icu_discharge
-    fields:
-      time: discharge_timestamp
-      code:
-        - out_code
-        - unittype
   - name: gender
-    fields:
+    columns:
       # TODO: suggest and maybe change time birthdate
-      time: admission_timestamp 
-      code: # codes is null, when using gender and gender is empty string 
-        - gender_code
-        - gender 
-  - name: age
-    fields:
-      time: admission_timestamp
+      time: col(admission_timestamp)
+      code: # codes is null, when using gender and gender is empty string
+        - col(gender)
+  - name: icu_admission
+    columns:
+      time: col(admission_timestamp)
       code:
-        - age_code
-        - age_unit
-  #     numeric_value: numeric_age
-  #     text_value: categoric_age
+        - col(unittype)
+  - name: age
+    columns:
+      time: col(admission_timestamp)
+      code:
+        - const("y")
+      text_value: col(age)
+  - name: ethnicity
+    columns:
+      time: col(admission_timestamp)
+      code:
+        - col(ethnicity)
+  - name: admissionheight
+    columns:
+      time: col(admission_timestamp)
+      code:
+        - const("cm")
+      numeric_value: col(admissionheight)
+  - name: admissionweight
+    columns:
+      time: col(admission_timestamp)
+      code:
+        - const("kg")
+      numeric_value: col(admissionweight)
+  - name: icu_discharge
+    columns:
+      time: col(discharge_timestamp)
+      code:
+        - const(unittype)
+  - name: dischargeweight
+    columns:
+      time: col(discharge_timestamp)
+      code:
+        - const("kg")
+      numeric_value: col(dischargeweight)

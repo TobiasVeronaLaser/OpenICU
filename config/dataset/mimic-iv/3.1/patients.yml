@@ -1,37 +1,10 @@
 name: patients
-path: hosp/patients.csv
+path: hosp/patients.csv.gz
+version: "3.1"
+dataset: mimic-iv
 
-fields:
-  # general codes
-  - name: src_table_code
-    type: string
-    constant: hosp/patients
-  # codes
-  - name: age_code
-    type: string
-    constant: AGE
-  - name: dob_code
-    type: string
-    constant: DOB
-  - name: dod_code
-    type: string
-    constant: DOD
-  - name: gender_code
-    type: string
-    constant: SEX
-  - name: patient_code
-    type: string
-    constant: PATIENT
+columns:
   # subject_id and extentions
-  - name: hadm_id
-    type: int64
-    constant: -1
-  - name: stay_id
-    type: int64
-    constant: -1
-  - name: src_db_id
-    type: string
-    constant: mimic
   - name: subject_id
     type: int64
   # db fields - times
@@ -43,52 +16,30 @@ fields:
     type: string
   - name: dod
     type: datetime
-  - name: month
-    type: int64
-    constant: 1
-  - name: day
-    type: int64
-    constant: 1
-  - name: basetime  # if using "time" as name, duplication error appears
-    type: string
-    constant: "00:00:00"
+    params:
+      format: "%Y-%m-%d"
   # db fields - values
   - name: gender
     type: string
 
 post_callbacks:
-  - callback: to_datetime
-    params:
-      year: anchor_year
-      month: month
-      day: day
-      time: basetime
-      offset: anchor_age # check ! if anchor year is added as year not as other time
-      output: dob
+  - to_datetime(anchor_year, 1, 1, "00:00:00", anchor_age, dob)
 
 event_defaults:
-  subject_id: subject_id
-  code_prefix:
-    - src_table_code
+  subject_id: col(subject_id)
   extension:
-    hadm_id: hadm_id
-    stay_id: stay_id
-    src_db_id: src_db_id
+    hadm_id: const(-1)
+    stay_id: const("-1")
 
-events: 
+events:
   - name: dob
-    fields:
-      time: dob
-      code:
-        - dob_code
+    columns:
+      time: col(dob)
   - name: dod
-    fields:
-      time: dod
-      code:
-        - dod_code
+    columns:
+      time: col(dod)
   - name: gender
-    fields:
-      time: dob
-      code: 
-        - gender_code
-        - gender
+    columns:
+      time: col(dob)
+      code:
+        - col(gender)
